@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
-import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live';
+import { Playground } from './components/Playground';
 
-function App() {
-  return (
-    <LiveProvider code="<strong>Hello World!</strong>">
-      <LiveEditor />
-      <LiveError />
-      <LivePreview />
-    </LiveProvider>
-  );
-}
+const App = () => {
+  return <Playground />;
+};
 
 export default App;
