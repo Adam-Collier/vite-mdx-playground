@@ -1,9 +1,11 @@
 import { evaluateSync } from 'xdm';
 import { Row } from 'react-bootstrap';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import * as runtime from 'react/jsx-runtime.js';
 import styled from 'styled-components';
-import Editor from '@monaco-editor/react';
+import { ErrorBoundary } from 'react-error-boundary';
+
+import { Editor } from '../Editor';
 
 const Wrapper = styled.div`
   display: flex;
@@ -13,37 +15,33 @@ const Wrapper = styled.div`
   }
 `;
 
+const ErrorFallback = ({ error, resetErrorBoundary }) => {
+  return (
+    <div>
+      <h2>Something went wrong.</h2>
+      <pre>{error.message}</pre>
+    </div>
+  );
+};
+
 const Content = ({ mdx }) => {
-  try {
-    const { default: Content } = evaluateSync(mdx, runtime);
-    return (
-      <div>
-        <Content components={{ Row }} />
-      </div>
-    );
-  } catch (error) {
-    return <div>{error.message}</div>;
-  }
+  const { default: Content } = evaluateSync(mdx, runtime);
+  return (
+    <div>
+      <Content components={{ Row }} />
+    </div>
+  );
 };
 
 export const Playground = () => {
   const [mdx, setMDX] = useState('# This is some content');
 
-  const handleChange = (value) => {
-    setMDX(value);
-  };
-
   return (
     <Wrapper>
-      {/* <textarea value={mdx} /> */}
-      <Editor
-        height="80vh"
-        theme="vs-dark"
-        onChange={handleChange}
-        defaultLanguage="markdown"
-        defaultValue={mdx}
-      />
-      <Content mdx={mdx} />
+      <Editor initialValue={mdx} setMDX={setMDX} />
+      <ErrorBoundary FallbackComponent={ErrorFallback} resetKeys={mdx}>
+        <Content mdx={mdx} />
+      </ErrorBoundary>
     </Wrapper>
   );
 };
