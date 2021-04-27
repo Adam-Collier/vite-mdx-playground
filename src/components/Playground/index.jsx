@@ -1,6 +1,5 @@
-import { evaluateSync } from 'xdm';
-import { Row } from 'react-bootstrap';
-import React, { useState, useRef } from 'react';
+import { evaluate } from 'xdm';
+import React, { useState, useMemo } from 'react';
 import * as runtime from 'react/jsx-runtime.js';
 import styled from 'styled-components';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -24,17 +23,38 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
   );
 };
 
+const getContent = async (mdx, setCode, setError) => {
+  try {
+    const { default: content } = await evaluate(mdx, {
+      ...runtime,
+      useDynamicImport: true,
+    });
+
+    setError(null);
+    setCode(content);
+  } catch (error) {
+    setError(error);
+  }
+};
+
 const Content = ({ mdx }) => {
-  const { default: Content } = evaluateSync(mdx, runtime);
+  const [code, setCode] = useState('');
+  const [error, setError] = useState(null);
+
+  useMemo(() => {
+    getContent(mdx, setCode, setError);
+  }, [mdx]);
+
   return (
     <div>
-      <Content components={{ Row }} />
+      {code}
+      {error && error.message}
     </div>
   );
 };
 
 export const Playground = () => {
-  const [mdx, setMDX] = useState('# This is some content');
+  const [mdx, setMDX] = useState('');
 
   return (
     <Wrapper>
